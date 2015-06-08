@@ -21,8 +21,7 @@ public class DatabaseConnection
                 this.createExceptionMessageAndExit(exception);
             }
             dbConnection.close();
-        } else
-            System.out.println("Database exists.");
+        }
     }
 
     private Connection connectToDatabase() {

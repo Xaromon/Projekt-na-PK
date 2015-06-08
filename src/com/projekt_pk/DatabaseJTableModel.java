@@ -6,29 +6,44 @@ import java.sql.*;
 import java.util.ArrayList;
 
 public class DatabaseJTableModel extends AbstractTableModel {
-    Object[][] contents;
-    String[] columnNames;
-    Class[] columnClasses;
+    private Object[][] contents;
+    private String[] columnNames;
+    private Class[] columnClasses;
+    private DBBaseClass dbModelInstance;
 
-    public DatabaseJTableModel(Connection conn, String tableName)  throws SQLException {
+    public DatabaseJTableModel(DBBaseClass dbModelInstance) throws SQLException {
         super();
-        getTableContents(conn, tableName);
+        this.dbModelInstance = dbModelInstance;
+        this.getTableColumns();
+        this.getTableContents();
     }
 
-    protected void getTableContents(Connection conn, String tableName) throws SQLException {
-        DatabaseMetaData meta = conn.getMetaData();
+    private Connection createDBConnection() throws SQLException {
+        return new DatabaseConnection().getDatabaseConnetion();
+    }
 
-        ResultSet results = meta.getColumns(null, null, tableName, null) ;
+    protected void getTableColumns() throws SQLException{
+        Connection dbConnection = this.createDBConnection();
+        DatabaseMetaData meta = dbConnection.getMetaData();
+
+        ResultSet results = meta.getColumns(
+                null, null, this.dbModelInstance.getTableName(), null
+        );
+
         ArrayList<String> colNamesList = new ArrayList<>();
-        ArrayList colClassesList = new ArrayList();
+        ArrayList<Class> colClassesList = new ArrayList<>();
 
         while (results.next()) {
             String columnName = results.getString("COLUMN_NAME");
             columnName = columnName.substring(0,1).toUpperCase() + columnName.substring(1);
+
             if (columnName.equals("Id"))
                 continue;
+
             colNamesList.add(columnName);
+
             int dbType = results.getInt("DATA_TYPE");
+
             switch (dbType) {
                 case Types.INTEGER:
                     colClassesList.add(Integer.class); break;
@@ -44,54 +59,52 @@ public class DatabaseJTableModel extends AbstractTableModel {
                 default:
                     colClassesList.add(String.class); break;
             }
-            System.out.println ("type: " + results.getInt("DATA_TYPE"));
         }
-        columnNames = new String[colNamesList.size()];
-        colNamesList.toArray(columnNames);
-        columnClasses = new Class [colClassesList.size()];
-        colClassesList.toArray (columnClasses);
+        this.columnNames = new String[colNamesList.size()];
+        colNamesList.toArray(this.columnNames);
 
-        Statement statement = conn.createStatement ();
-        results = statement.executeQuery("SELECT * FROM " + tableName);
+        this.columnClasses = new Class[colClassesList.size()];
+        colClassesList.toArray(this.columnClasses);
+        dbConnection.close();
+    }
+
+    protected void getTableContents() throws SQLException {
+        ResultSet results;
+        Connection dbConnection = this.createDBConnection();
+
+        results = this.dbModelInstance.selectAll(dbConnection);
+
         ArrayList rowList = new ArrayList();
         while (results.next()) {
             ArrayList cellList = new ArrayList();
-            for (int i = 0; i<columnClasses.length; i++) {
+            for (int i = 0; i< this.columnClasses.length; i++) {
                 Object cellValue = null;
 
 
                 if (columnClasses[i] == String.class)
                     cellValue = results.getString (columnNames[i]);
                 else if (columnClasses[i] == Integer.class)
-                    cellValue = new Integer (
-                            results.getInt (columnNames[i]));
+                    cellValue = new Integer(results.getInt(columnNames[i]));
                 else if (columnClasses[i] == Float.class)
-                    cellValue = new Float (
-                            results.getInt (columnNames[i]));
+                    cellValue = new Float(results.getInt (columnNames[i]));
                 else if (columnClasses[i] == Double.class)
-                    cellValue = new Double (
-                            results.getDouble (columnNames[i]));
+                    cellValue = new Double(results.getDouble (columnNames[i]));
                 else if (columnClasses[i] == java.sql.Date.class)
                     cellValue = results.getDate (columnNames[i]);
                 else
-                    System.out.println ("Can't assign " +
-                            columnNames[i]);
+                    System.out.println ("Can't assign " + columnNames[i]);
                 cellList.add (cellValue);
-            }// for
+            }
             Object[] cells = cellList.toArray();
-            rowList.add (cells);
-
-        } // while
-        // finally create contents two-dim array
+            rowList.add(cells);
+        }
         contents = new Object[rowList.size()] [];
         for (int i=0; i<contents.length; i++)
 
             contents[i] = (Object []) rowList.get (i);
-        System.out.println ("Created model with " + contents.length + " rows");
 
-        // close stuff
         results.close();
-        statement.close();
+        dbConnection.close();
     }
 
     public int getRowCount() {
@@ -106,14 +119,14 @@ public class DatabaseJTableModel extends AbstractTableModel {
     }
 
     public Object getValueAt(int row, int column) {
-        return contents [row][column];
+        return contents[row][column];
     }
 
     public Class getColumnClass(int col) {
-        return columnClasses [col];
+        return columnClasses[col];
     }
 
     public String getColumnName(int col) {
-        return columnNames [col];
+        return columnNames[col];
     }
 }

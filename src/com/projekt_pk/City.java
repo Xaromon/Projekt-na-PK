@@ -1,11 +1,24 @@
 package com.projekt_pk;
 
-public class City extends DBAbstractClass {
-    public City () {
-        this.tableName = "city";
-        this.createTableSqlStatement =
-            "CREATE TABLE " + this.tableName + " " +
+import java.sql.Connection;
+import java.sql.SQLException;
+
+public class City extends DBBaseClass {
+    public City() {
+        super(
+            "CREATE TABLE " +
             "(id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL," +
-            " name CHAR(50))";
+            " name CHAR(50))",
+            "SELECT * FROM city",
+            "city"
+        );
+    }
+
+    public void insertNewCity(Connection dbConnection, String cityName) throws SQLException{
+        String insertSql =
+            "INSERT INTO " + this.tableName + " (name) " +
+            "VALUES ('" + cityName + "');";
+        this.executeSQLStatement(dbConnection, insertSql);
+
     }
 }
