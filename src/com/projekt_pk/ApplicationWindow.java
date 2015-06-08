@@ -12,15 +12,14 @@ import java.sql.SQLException;
 
 public class ApplicationWindow extends JFrame {
 
-    private DatabaseConnection dbConnection;
     private JTabbedPane tabbedPane;
     private JToolBar toolBar;
-    private TableModel cityModel;
+    private DatabaseJTableModel cityModel;
 
     public ApplicationWindow() {
         super("Tours manager");
         try {
-            this.dbConnection = new DatabaseConnection();
+            new DatabaseConnection();
             this.prepareGUI();
             this.pack();
             this.setVisible(true);
@@ -60,7 +59,7 @@ public class ApplicationWindow extends JFrame {
         ));
     }
 
-    public TableModel getCityTableModel() {
+    public DatabaseJTableModel getCityTableModel() {
         return this.cityModel;
     }
 
@@ -123,7 +122,8 @@ class AddNewCity implements ActionListener {
             catch (SQLException exception) {
                 System.err.println("Cannot create a new city." + exception.getMessage());
             }
-            TableModel cityModel = this.mainWindowReference.getCityTableModel();
+            DatabaseJTableModel cityModel = this.mainWindowReference.getCityTableModel();
+            cityModel.refreshTableContent();
         }
     }
 }

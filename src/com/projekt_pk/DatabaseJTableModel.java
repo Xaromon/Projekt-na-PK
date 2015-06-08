@@ -68,6 +68,14 @@ public class DatabaseJTableModel extends AbstractTableModel {
         dbConnection.close();
     }
 
+    public void refreshTableContent() {
+        try {
+            this.getTableContents();
+            this.fireTableDataChanged();
+        } catch (SQLException exception) {
+            System.err.println(exception);
+        }
+    }
     protected void getTableContents() throws SQLException {
         ResultSet results;
         Connection dbConnection = this.createDBConnection();
@@ -79,7 +87,6 @@ public class DatabaseJTableModel extends AbstractTableModel {
             ArrayList cellList = new ArrayList();
             for (int i = 0; i< this.columnClasses.length; i++) {
                 Object cellValue = null;
-
 
                 if (columnClasses[i] == String.class)
                     cellValue = results.getString (columnNames[i]);
