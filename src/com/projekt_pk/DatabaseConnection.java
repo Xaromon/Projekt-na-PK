@@ -35,7 +35,7 @@ public class DatabaseConnection
         return dbConnection;
     }
 
-    public Connection getDatabaseConnetion() {
+    public Connection getDatabaseConnection() {
         return this.connectToDatabase();
     }
 
@@ -47,5 +47,8 @@ public class DatabaseConnection
     private void prepareDatabaseStructure(Connection dbConnection) throws SQLException{
         City city = new City();
         city.createTable(dbConnection);
+        Hotel hotel = new Hotel();
+        hotel.createTable(dbConnection);
+        dbConnection.close();
     }
 }

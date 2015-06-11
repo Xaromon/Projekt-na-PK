@@ -5,13 +5,14 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.ArrayList;
 
 public class DBBaseClass {
     protected String createTableSqlStatement = null;
     protected String selectAllSqlStatement = null;
     protected String tableName = null;
 
-    public DBBaseClass(String createStatement, String selectStatement, String tableName) {
+    public DBBaseClass(String tableName, String createStatement, String selectStatement) {
         this.createTableSqlStatement = createStatement;
         this.selectAllSqlStatement = selectStatement;
         this.tableName = tableName;
@@ -40,5 +41,30 @@ public class DBBaseClass {
 
     public String getTableName() {
         return this.tableName;
+    }
+
+    public ComboBoxDatabaseModel getComboBoxModel() {
+        String[][] toComboBoxModel = null;
+        ArrayList<String[]> rowList = new ArrayList<>();
+        try {
+            Connection dbConnection = new DatabaseConnection().getDatabaseConnection();
+            Statement statement = dbConnection.createStatement();
+            dbConnection.setAutoCommit(false);
+            ResultSet rs = statement.executeQuery("SELECT id, name FROM " + this.tableName);
+            while(rs.next()) {
+                int id = rs.getInt("id");
+                String name = rs.getString("name");
+                rowList.add(new String[]{Integer.toString(id), name});
+            }
+            toComboBoxModel = new String[rowList.size()][];
+            for (int i = 0; i < toComboBoxModel.length; i++)
+                toComboBoxModel[i] = rowList.get(i);
+            rs.close();
+            statement.close();
+            dbConnection.commit();
+        } catch (SQLException exception) {
+            System.out.println(exception);
+        }
+        return new ComboBoxDatabaseModel(toComboBoxModel);
     }
 }

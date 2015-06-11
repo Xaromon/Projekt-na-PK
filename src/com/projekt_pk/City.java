@@ -6,11 +6,14 @@ import java.sql.SQLException;
 public class City extends DBBaseClass {
     public City() {
         super(
-            "CREATE TABLE " +
-            "(id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL," +
-            " name CHAR(50))",
-            "SELECT * FROM city",
-            "city"
+            // TableName
+            "city",
+
+            // Insert statement
+            "CREATE TABLE city (id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, name CHAR(50) UNIQUE NOT NULL);",
+
+            // Select all statement
+            "SELECT * FROM city"
         );
     }
 
@@ -19,6 +22,5 @@ public class City extends DBBaseClass {
             "INSERT INTO " + this.tableName + " (name) " +
             "VALUES ('" + cityName + "');";
         this.executeSQLStatement(dbConnection, insertSql);
-
     }
 }

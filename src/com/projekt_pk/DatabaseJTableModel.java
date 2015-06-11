@@ -19,7 +19,7 @@ public class DatabaseJTableModel extends AbstractTableModel {
     }
 
     private Connection createDBConnection() throws SQLException {
-        return new DatabaseConnection().getDatabaseConnetion();
+        return new DatabaseConnection().getDatabaseConnection();
     }
 
     protected void getTableColumns() throws SQLException{
@@ -46,7 +46,10 @@ public class DatabaseJTableModel extends AbstractTableModel {
 
             switch (dbType) {
                 case Types.INTEGER:
-                    colClassesList.add(Integer.class); break;
+                    if (columnName.equals("City"))
+                        colClassesList.add(String.class);
+                    else
+                        colClassesList.add(Integer.class); break;
                 case Types.FLOAT:
                     colClassesList.add(Float.class); break;
                 case Types.DOUBLE:
@@ -88,27 +91,32 @@ public class DatabaseJTableModel extends AbstractTableModel {
             for (int i = 0; i< this.columnClasses.length; i++) {
                 Object cellValue = null;
 
-                if (columnClasses[i] == String.class)
-                    cellValue = results.getString (columnNames[i]);
-                else if (columnClasses[i] == Integer.class)
-                    cellValue = new Integer(results.getInt(columnNames[i]));
-                else if (columnClasses[i] == Float.class)
-                    cellValue = new Float(results.getInt (columnNames[i]));
-                else if (columnClasses[i] == Double.class)
-                    cellValue = new Double(results.getDouble (columnNames[i]));
-                else if (columnClasses[i] == java.sql.Date.class)
-                    cellValue = results.getDate (columnNames[i]);
+                if (this.columnClasses[i] == String.class)
+                    cellValue = results.getString(columnNames[i]);
+                else if (this.columnClasses[i] == Integer.class)
+                    cellValue = new Integer(results.getInt(this.columnNames[i]));
+                else if (this.columnClasses[i] == Float.class)
+                    cellValue = new Float(results.getInt(this.columnNames[i]));
+                else if (this.columnClasses[i] == Double.class)
+                    cellValue = new Double(results.getDouble(this.columnNames[i]));
+                else if (this.columnClasses[i] == java.sql.Date.class)
+                    cellValue = results.getDate (this.columnNames[i]);
                 else
-                    System.out.println ("Can't assign " + columnNames[i]);
-                cellList.add (cellValue);
+                    System.out.println ("Can't assign " + this.columnNames[i]);
+                cellList.add(cellValue);
             }
             Object[] cells = cellList.toArray();
             rowList.add(cells);
         }
-        contents = new Object[rowList.size()] [];
-        for (int i=0; i<contents.length; i++)
-
-            contents[i] = (Object []) rowList.get (i);
+        if (rowList.size() == 0) {
+            this.contents = new Object[1][1];
+            this.contents[0] = new String[this.columnNames.length];
+        }
+        else {
+            this.contents = new Object[rowList.size()][];
+            for (int i = 0; i < this.contents.length; i++)
+                this.contents[i] = (Object[]) rowList.get(i);
+        }
 
         results.close();
         dbConnection.close();

@@ -1,7 +1,7 @@
 package com.projekt_pk;
 
 import javax.swing.*;
-import javax.swing.table.TableModel;
+import javax.xml.crypto.Data;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -15,6 +15,7 @@ public class ApplicationWindow extends JFrame {
     private JTabbedPane tabbedPane;
     private JToolBar toolBar;
     private DatabaseJTableModel cityModel;
+    private DatabaseJTableModel hotelModel;
 
     public ApplicationWindow() {
         super("Tours manager");
@@ -37,9 +38,10 @@ public class ApplicationWindow extends JFrame {
         this.toolBar.setFloatable(false);
         this.tabbedPane = new JTabbedPane();
         try {
+            this.prepareHotelViews();
             this.prepareCityViews();
         } catch (SQLException exception) {
-            System.err.println("Cannot run application");
+            System.err.println("Cannot run application " + exception);
             System.exit(1);
         }
 
@@ -59,8 +61,23 @@ public class ApplicationWindow extends JFrame {
         ));
     }
 
+    private void prepareHotelViews() throws SQLException {
+        this.hotelModel = new DatabaseJTableModel(new Hotel());
+        JTable hotelTable = new JTable(this.hotelModel);
+        JScrollPane scrollPane = new JScrollPane(hotelTable);
+        this.tabbedPane.addTab("Hotels", null, scrollPane, "Hotels");
+
+        this.toolBar.add(this.createActionButton(
+                "", "AddHotel", "Add new hotel...", "Add Hotel", new AddNewHotel(this)
+        ));
+    }
+
     public DatabaseJTableModel getCityTableModel() {
         return this.cityModel;
+    }
+
+    public DatabaseJTableModel getHotelTableModel() {
+        return this.hotelModel;
     }
 
     private JButton createActionButton(
@@ -108,22 +125,82 @@ class AddNewCity implements ActionListener {
     @Override
     public void actionPerformed(ActionEvent e) {
         if (e.getActionCommand().equals("AddCity")) {
-            String cityName = (String) JOptionPane.showInputDialog(
+            String cityName = JOptionPane.showInputDialog(
                 this.mainWindowReference,
                 "Please enter name of the city: ",
                 "Add new city",
                 JOptionPane.PLAIN_MESSAGE
             );
+            if (cityName != null) {
+                try {
+                    Connection dbConn = new DatabaseConnection().getDatabaseConnection();
+                    new City().insertNewCity(dbConn, cityName);
+                    dbConn.close();
+                } catch (SQLException exception) {
+                    JOptionPane.showMessageDialog(
+                        this.mainWindowReference,
+                        "Cannot create new city, please check name.",
+                        "Cannot create a new City",
+                        JOptionPane.ERROR_MESSAGE
+                    );
+                }
+                DatabaseJTableModel cityModel = this.mainWindowReference.getCityTableModel();
+                cityModel.refreshTableContent();
+            }
+        }
+    }
+}
+
+
+class AddNewHotel implements ActionListener {
+
+    private ApplicationWindow mainWindowReference;
+
+    public AddNewHotel(ApplicationWindow mainWindowReference) {
+        this.mainWindowReference = mainWindowReference;
+    }
+
+    @Override
+    public void actionPerformed(ActionEvent e) {
+        Hotel dbModel = new Hotel();
+
+        JTextField hotelName = new JTextField();
+        JTextField hotelAddress = new JTextField();
+        JTextField hotelPrice = new JTextField();
+        JComboBox<String> hotelCity = new JComboBox(new City().getComboBoxModel());
+
+        final JComponent[] inputs = new JComponent[] {
+            new JLabel("Name:"),
+            hotelName,
+            new JLabel("Address:"),
+            hotelAddress,
+            new JLabel("Price:"),
+            hotelPrice,
+            new JLabel("City:"),
+            hotelCity
+        };
+
+        int status = JOptionPane.showConfirmDialog(
+            this.mainWindowReference,
+            inputs,
+            "Add new Hotel",
+            JOptionPane.OK_CANCEL_OPTION,
+            JOptionPane.PLAIN_MESSAGE
+        );
+        if (status == 0) {
+            ComboBoxDatabaseModel comboboxModel = (ComboBoxDatabaseModel) hotelCity.getModel();
             try {
-                Connection dbConn = new DatabaseConnection().getDatabaseConnetion();
-                new City().insertNewCity(dbConn, cityName);
-                dbConn.close();
+                dbModel.insertNewHotel(
+                    hotelName.getText(),
+                    hotelAddress.getText(),
+                    hotelPrice.getText(),
+                    (String) comboboxModel.getDatabaseId()
+                );
+            } catch (SQLException exception) {
+                System.err.println(exception);
             }
-            catch (SQLException exception) {
-                System.err.println("Cannot create a new city." + exception.getMessage());
-            }
-            DatabaseJTableModel cityModel = this.mainWindowReference.getCityTableModel();
-            cityModel.refreshTableContent();
+            DatabaseJTableModel hotelModel = this.mainWindowReference.getHotelTableModel();
+            hotelModel.refreshTableContent();
         }
     }
 }
