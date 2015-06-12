@@ -16,6 +16,7 @@ public class ApplicationWindow extends JFrame {
     private JToolBar toolBar;
     private DatabaseJTableModel cityModel;
     private DatabaseJTableModel hotelModel;
+    private DatabaseJTableModel personModel;
 
     public ApplicationWindow() {
         super("Tours manager");
@@ -38,6 +39,7 @@ public class ApplicationWindow extends JFrame {
         this.toolBar.setFloatable(false);
         this.tabbedPane = new JTabbedPane();
         try {
+            this.preparePersonViews();
             this.prepareHotelViews();
             this.prepareCityViews();
         } catch (SQLException exception) {
@@ -72,12 +74,27 @@ public class ApplicationWindow extends JFrame {
         ));
     }
 
+    private void preparePersonViews() throws SQLException {
+        this.personModel = new DatabaseJTableModel(new Person());
+        JTable personTable = new JTable(this.personModel);
+        JScrollPane scrollPane = new JScrollPane(personTable);
+        this.tabbedPane.addTab("Persons", null, scrollPane, "Persons");
+
+        this.toolBar.add(this.createActionButton(
+                "", "AddPerson", "Add new person...", "Add Person", new AddNewPerson(this)
+        ));
+    }
+
     public DatabaseJTableModel getCityTableModel() {
         return this.cityModel;
     }
 
     public DatabaseJTableModel getHotelTableModel() {
         return this.hotelModel;
+    }
+
+    public DatabaseJTableModel getPersonTableModel() {
+        return this.personModel;
     }
 
     private JButton createActionButton(
@@ -188,19 +205,84 @@ class AddNewHotel implements ActionListener {
             JOptionPane.PLAIN_MESSAGE
         );
         if (status == 0) {
-            ComboBoxDatabaseModel comboboxModel = (ComboBoxDatabaseModel) hotelCity.getModel();
+            ComboBoxDatabaseModel comboBoxModel = (ComboBoxDatabaseModel) hotelCity.getModel();
             try {
                 dbModel.insertNewHotel(
                     hotelName.getText(),
                     hotelAddress.getText(),
                     hotelPrice.getText(),
-                    (String) comboboxModel.getDatabaseId()
+                    (String) comboBoxModel.getDatabaseId()
                 );
             } catch (SQLException exception) {
-                System.err.println(exception);
+                JOptionPane.showMessageDialog(
+                        this.mainWindowReference,
+                        "Cannot create new Hotel, please check entered values.",
+                        "Cannot create a new Hotel",
+                        JOptionPane.ERROR_MESSAGE
+                );
             }
             DatabaseJTableModel hotelModel = this.mainWindowReference.getHotelTableModel();
             hotelModel.refreshTableContent();
+        }
+    }
+}
+
+
+class AddNewPerson implements ActionListener {
+
+    private ApplicationWindow mainWindowReference;
+
+    public AddNewPerson(ApplicationWindow mainWindowReference) {
+        this.mainWindowReference = mainWindowReference;
+    }
+
+    @Override
+    public void actionPerformed(ActionEvent e) {
+        Person dbModel = new Person();
+
+        JTextField personName = new JTextField();
+        JTextField personSurname = new JTextField();
+        JTextField personAddress = new JTextField();
+        JComboBox<String> personCity = new JComboBox(new City().getComboBoxModel());
+
+        final JComponent[] inputs = new JComponent[] {
+                new JLabel("Name:"),
+                personName,
+                new JLabel("Surname:"),
+                personSurname,
+                new JLabel("Address:"),
+                personAddress,
+                new JLabel("City:"),
+                personCity
+        };
+
+        int status = JOptionPane.showConfirmDialog(
+                this.mainWindowReference,
+                inputs,
+                "Add new Person",
+                JOptionPane.OK_CANCEL_OPTION,
+                JOptionPane.PLAIN_MESSAGE
+        );
+        if (status == 0) {
+            ComboBoxDatabaseModel comboBoxModel = (ComboBoxDatabaseModel) personCity.getModel();
+            try {
+                dbModel.insertNewPerson(
+                        personName.getText(),
+                        personSurname.getText(),
+                        personAddress.getText(),
+                        (String) comboBoxModel.getDatabaseId()
+                );
+            } catch (SQLException exception) {
+                System.err.println("Exception in create person view: " + exception);
+                JOptionPane.showMessageDialog(
+                        this.mainWindowReference,
+                        "Cannot create new person, please check entered values.",
+                        "Cannot create a new Person",
+                        JOptionPane.ERROR_MESSAGE
+                );
+            }
+            DatabaseJTableModel personModel = this.mainWindowReference.getPersonTableModel();
+            personModel.refreshTableContent();
         }
     }
 }

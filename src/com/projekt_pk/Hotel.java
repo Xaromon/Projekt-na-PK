@@ -19,10 +19,10 @@ public class Hotel extends DBBaseClass {
                 "SELECT hotel.name, hotel.address, hotel.price, city.name as city FROM hotel, city WHERE hotel.city=city.id"
         );
     }
-    public void insertNewHotel(String name, String addres, String price, String city) throws SQLException {
+    public void insertNewHotel(String name, String address, String price, String city) throws SQLException {
         Connection dbConnection = new DatabaseConnection().getDatabaseConnection();
         String insertSql = "INSERT INTO " + this.tableName + " (name, address, price, city) " +
-                "VALUES ('" + name + "', '" + addres + "', + '" + price + "', '" + city + "')";
+                "VALUES ('" + name + "', '" + address + "', + '" + price + "', '" + city + "')";
         this.executeSQLStatement(dbConnection, insertSql);
         dbConnection.close();
     }

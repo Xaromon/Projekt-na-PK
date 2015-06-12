@@ -49,6 +49,8 @@ public class DatabaseConnection
         city.createTable(dbConnection);
         Hotel hotel = new Hotel();
         hotel.createTable(dbConnection);
+        Person person = new Person();
+        person.createTable(dbConnection);
         dbConnection.close();
     }
 }
