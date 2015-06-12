@@ -1,7 +1,6 @@
 package com.projekt_pk;
 
 import javax.swing.*;
-import javax.xml.crypto.Data;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -17,6 +16,7 @@ public class ApplicationWindow extends JFrame {
     private DatabaseJTableModel cityModel;
     private DatabaseJTableModel hotelModel;
     private DatabaseJTableModel personModel;
+    private DatabaseJTableModel toursModel;
 
     public ApplicationWindow() {
         super("Tours manager");
@@ -42,6 +42,7 @@ public class ApplicationWindow extends JFrame {
             this.preparePersonViews();
             this.prepareHotelViews();
             this.prepareCityViews();
+            this.prepareTourViews();
         } catch (SQLException exception) {
             System.err.println("Cannot run application " + exception);
             System.exit(1);
@@ -85,6 +86,17 @@ public class ApplicationWindow extends JFrame {
         ));
     }
 
+    private void prepareTourViews() throws SQLException {
+        this.toursModel = new DatabaseJTableModel(new Tour());
+        JTable toursTable = new JTable(this.toursModel);
+        JScrollPane scrollPane = new JScrollPane(toursTable);
+        this.tabbedPane.addTab("Tours", null, scrollPane, "Tours");
+
+        this.toolBar.add(this.createActionButton(
+                "", "AddTour", "Add new tour...", "Add Tour", new AddNewTour(this)
+        ));
+    }
+
     public DatabaseJTableModel getCityTableModel() {
         return this.cityModel;
     }
@@ -95,6 +107,10 @@ public class ApplicationWindow extends JFrame {
 
     public DatabaseJTableModel getPersonTableModel() {
         return this.personModel;
+    }
+
+    public DatabaseJTableModel getTourTableModel() {
+        return this.toursModel;
     }
 
     private JButton createActionButton(
@@ -273,7 +289,6 @@ class AddNewPerson implements ActionListener {
                         (String) comboBoxModel.getDatabaseId()
                 );
             } catch (SQLException exception) {
-                System.err.println("Exception in create person view: " + exception);
                 JOptionPane.showMessageDialog(
                         this.mainWindowReference,
                         "Cannot create new person, please check entered values.",
@@ -283,6 +298,71 @@ class AddNewPerson implements ActionListener {
             }
             DatabaseJTableModel personModel = this.mainWindowReference.getPersonTableModel();
             personModel.refreshTableContent();
+        }
+    }
+}
+
+class AddNewTour implements ActionListener {
+
+
+    private ApplicationWindow mainWindowReference;
+
+    public AddNewTour(ApplicationWindow mainWindowReference) {
+        this.mainWindowReference = mainWindowReference;
+    }
+
+    @Override
+    public void actionPerformed(ActionEvent e) {
+        Tour dbModel = new Tour();
+
+        JTextField tourName = new JTextField();
+        JTextField tourDescripton = new JTextField();
+        JComboBox<String> tourPerson = new JComboBox(new Person().getComboBoxModel());
+        JComboBox<String> tourCity = new JComboBox(new City().getComboBoxModel());
+        JComboBox<String> tourHotel = new JComboBox(new Hotel().getComboBoxModel());
+
+        final JComponent[] inputs = new JComponent[] {
+                new JLabel("Name:"),
+                tourName,
+                new JLabel("Description:"),
+                tourDescripton,
+                new JLabel("Person:"),
+                tourPerson,
+                new JLabel("City:"),
+                tourCity,
+                new JLabel("Hotel:"),
+                tourHotel
+        };
+
+        int status = JOptionPane.showConfirmDialog(
+                this.mainWindowReference,
+                inputs,
+                "Add new Tour",
+                JOptionPane.OK_CANCEL_OPTION,
+                JOptionPane.PLAIN_MESSAGE
+        );
+        if (status == 0) {
+            ComboBoxDatabaseModel personBoxModel = (ComboBoxDatabaseModel) tourPerson.getModel();
+            ComboBoxDatabaseModel cityBoxModel = (ComboBoxDatabaseModel) tourCity.getModel();
+            ComboBoxDatabaseModel hotelBoxModel = (ComboBoxDatabaseModel) tourHotel.getModel();
+            try {
+                dbModel.insertNewTour(
+                        tourName.getText(),
+                        tourDescripton.getText(),
+                        (String) hotelBoxModel.getDatabaseId(),
+                        (String) personBoxModel.getDatabaseId(),
+                        (String) cityBoxModel.getDatabaseId()
+                );
+            } catch (SQLException exception) {
+                JOptionPane.showMessageDialog(
+                        this.mainWindowReference,
+                        "Cannot create new tour, please check entered values.",
+                        "Cannot create a new Tour",
+                        JOptionPane.ERROR_MESSAGE
+                );
+            }
+            DatabaseJTableModel toursModel = this.mainWindowReference.getTourTableModel();
+            toursModel.refreshTableContent();
         }
     }
 }

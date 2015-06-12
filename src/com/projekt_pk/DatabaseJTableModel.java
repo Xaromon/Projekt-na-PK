@@ -48,6 +48,10 @@ public class DatabaseJTableModel extends AbstractTableModel {
                 case Types.INTEGER:
                     if (columnName.equals("City"))
                         colClassesList.add(String.class);
+                    else if (columnName.equals("Person"))
+                        colClassesList.add(String.class);
+                    else if (columnName.equals("Hotel"))
+                        colClassesList.add(String.class);
                     else
                         colClassesList.add(Integer.class); break;
                 case Types.FLOAT:

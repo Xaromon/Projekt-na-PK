@@ -20,6 +20,7 @@ public class DBBaseClass {
 
     public void createTable(Connection dbConnection) throws SQLException {
         Statement statement = dbConnection.createStatement();
+        System.out.println(this.createTableSqlStatement);
         statement.executeUpdate(this.createTableSqlStatement);
         statement.close();
     }

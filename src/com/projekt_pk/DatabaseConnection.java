@@ -51,6 +51,8 @@ public class DatabaseConnection
         hotel.createTable(dbConnection);
         Person person = new Person();
         person.createTable(dbConnection);
+        Tour tour = new Tour();
+        tour.createTable(dbConnection);
         dbConnection.close();
     }
 }

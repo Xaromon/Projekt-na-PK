@@ -12,9 +12,12 @@ public class Person extends DBBaseClass {
 
                 // Insert Statement
                 "CREATE TABLE person " +
-                "(id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, name CHAR(50) NOT NULL, surname CHAR(50) " +
-                "UNIQUE NOT NULL, address CHAR(50) NOT NULL, city INTEGER, FOREIGN KEY(city) " +
-                "REFERENCES city(name));",
+                "(id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, " +
+                "name CHAR(50) NOT NULL, " +
+                "surname CHAR(50) NOT NULL, " +
+                "address CHAR(50) NOT NULL, " +
+                "city INTEGER, " +
+                "FOREIGN KEY(city) REFERENCES city(name));",
 
                 // Select All statement
                 "SELECT person.name, person.surname, person.address, city.name as city FROM person, city WHERE person.city=city.id"
