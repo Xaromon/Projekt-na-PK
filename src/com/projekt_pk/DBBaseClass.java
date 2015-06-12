@@ -31,6 +31,12 @@ public class DBBaseClass {
         return results;
     }
 
+    public void deleteRowId(Connection dbConnection, String itemId) throws SQLException{
+        String deleteSQLStatement = "DELETE FROM " + this.tableName + " WHERE id=" + itemId;
+        this.executeSQLStatement(dbConnection, deleteSQLStatement);
+        dbConnection.close();
+    }
+
     protected void executeSQLStatement(Connection dbConnection, String sqlStatement)
             throws SQLException {
         Statement statement = dbConnection.createStatement();

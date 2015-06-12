@@ -1,9 +1,12 @@
 package com.projekt_pk;
 
 import javax.swing.*;
+import javax.xml.crypto.Data;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.net.URL;
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -56,6 +59,7 @@ public class ApplicationWindow extends JFrame {
     private void prepareCityViews() throws SQLException{
         this.cityModel = new DatabaseJTableModel(new City());
         JTable cityTable = new JTable(this.cityModel);
+        cityTable.addMouseListener(new TablePopupMenu(this, cityTable));
         JScrollPane scrollPane = new JScrollPane(cityTable);
         this.tabbedPane.addTab("Cities", null, scrollPane, "Cities");
 
@@ -67,6 +71,7 @@ public class ApplicationWindow extends JFrame {
     private void prepareHotelViews() throws SQLException {
         this.hotelModel = new DatabaseJTableModel(new Hotel());
         JTable hotelTable = new JTable(this.hotelModel);
+        hotelTable.addMouseListener(new TablePopupMenu(this, hotelTable));
         JScrollPane scrollPane = new JScrollPane(hotelTable);
         this.tabbedPane.addTab("Hotels", null, scrollPane, "Hotels");
 
@@ -363,6 +368,84 @@ class AddNewTour implements ActionListener {
             }
             DatabaseJTableModel toursModel = this.mainWindowReference.getTourTableModel();
             toursModel.refreshTableContent();
+        }
+    }
+}
+
+
+class TablePopupMenu extends MouseAdapter {
+    private JTable referencedJTable;
+    private JFrame parentFrame;
+
+    public TablePopupMenu(JFrame parentFrame, JTable referencedJTable) {
+        this.referencedJTable = referencedJTable;
+        this.parentFrame = parentFrame;
+    }
+
+    @Override
+    public void mouseReleased(MouseEvent e) {
+        if (e.getButton() != 3)
+            return;
+        int r = this.referencedJTable.rowAtPoint(e.getPoint());
+        if (r >= 0 && r < this.referencedJTable.getRowCount()) {
+            this.referencedJTable.setRowSelectionInterval(r, r);
+        } else {
+            this.referencedJTable.clearSelection();
+        }
+
+        int rowindex = this.referencedJTable.getSelectedRow();
+
+        if (rowindex < 0)
+            return;
+        DatabaseJTableModel tableModel = (DatabaseJTableModel) this.referencedJTable.getModel();
+        String selectedRowID = null;
+        try {
+            selectedRowID = Integer.toString((Integer) tableModel.getValueAt(rowindex, 0));
+        } catch (NullPointerException excpetion) {
+            return; // Table is empty
+        }
+        if (e.getComponent() instanceof JTable) {
+            JPopupMenu popup = new JPopupMenu();
+            JMenuItem itemMenu = popup.add("Delete row..");
+            itemMenu.addActionListener(new DeleteItemActionListener(
+                    this.parentFrame, tableModel, selectedRowID
+            ));
+            popup.show(e.getComponent(), e.getX(), e.getY());
+        }
+    }
+}
+
+
+class DeleteItemActionListener implements ActionListener {
+    private JFrame parentFrame;
+    private DBBaseClass dbModelInstance;
+    private String selectedID;
+    private DatabaseJTableModel tableModel;
+
+    public DeleteItemActionListener(
+            JFrame parentFrame, DatabaseJTableModel tableModel, String selectedID) {
+        this.parentFrame = parentFrame;
+        this.dbModelInstance = tableModel.getDbModelInstance();
+        this.selectedID = selectedID;
+        this.tableModel = tableModel;
+    }
+
+    public void actionPerformed(ActionEvent e) {
+        int option = JOptionPane.showConfirmDialog(
+                this.parentFrame, "Are you sure to delete this row?", "Confirm delete", JOptionPane.YES_NO_OPTION
+        );
+        if (option != 0)
+            return;
+        try {
+            dbModelInstance.deleteRowId(new DatabaseConnection().getDatabaseConnection(), selectedID);
+            tableModel.refreshTableContent();
+        } catch (SQLException exception) {
+            JOptionPane.showMessageDialog(
+                    this.parentFrame,
+                    "Cannot delete value",
+                    "Cannot delete value",
+                    JOptionPane.ERROR_MESSAGE
+            );
         }
     }
 }

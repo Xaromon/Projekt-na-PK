@@ -23,7 +23,7 @@ public class Tour extends DBBaseClass {
                 "FOREIGN KEY(city) REFERENCES city(name));",
 
                 // Select All statement
-                "SELECT tour.name, tour.description, hotel.name as hotel, person.surname as person, city.name as city " +
+                "SELECT tour.id, tour.name, tour.description, hotel.name as hotel, person.surname as person, city.name as city " +
                 "FROM tour, person, city, hotel WHERE tour.city=city.id AND tour.person=person.id AND tour.hotel=hotel.id"
         );
     }

@@ -20,7 +20,7 @@ public class Person extends DBBaseClass {
                 "FOREIGN KEY(city) REFERENCES city(name));",
 
                 // Select All statement
-                "SELECT person.name, person.surname, person.address, city.name as city FROM person, city WHERE person.city=city.id"
+                "SELECT person.id, person.name, person.surname, person.address, city.name as city FROM person, city WHERE person.city=city.id"
         );
     }
 

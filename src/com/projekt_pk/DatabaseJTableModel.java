@@ -18,6 +18,10 @@ public class DatabaseJTableModel extends AbstractTableModel {
         this.getTableContents();
     }
 
+    public DBBaseClass getDbModelInstance() {
+        return this.dbModelInstance;
+    }
+
     private Connection createDBConnection() throws SQLException {
         return new DatabaseConnection().getDatabaseConnection();
     }
@@ -36,9 +40,6 @@ public class DatabaseJTableModel extends AbstractTableModel {
         while (results.next()) {
             String columnName = results.getString("COLUMN_NAME");
             columnName = columnName.substring(0,1).toUpperCase() + columnName.substring(1);
-
-            if (columnName.equals("Id"))
-                continue;
 
             colNamesList.add(columnName);
 
